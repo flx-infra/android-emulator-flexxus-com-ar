@@ -27,25 +27,6 @@ services:
       options:
         loki-url: ${LOKI_URL}
 
-  scrcpy-web:
-    image: srsdev/ws-scrcpy:latest
-    networks:
-      - traefik
-    environment:
-      - ADB_SERVER_IP=redroid
-    deploy:
-      placement:
-        constraints: ["${NODE}"]
-      labels:
-        - "traefik.enable=true"
-        - "traefik.http.routers.${SERVICE_NAME}.entrypoints=web"
-        - "traefik.http.routers.${SERVICE_NAME}.rule=Host(`${DOMAIN_NAME}`)"
-        - "traefik.http.services.${SERVICE_NAME}.loadbalancer.server.port=8000"
-    logging:
-      driver: loki
-      options:
-        loki-url: ${LOKI_URL}
-
 networks:
   traefik:
     external: true
