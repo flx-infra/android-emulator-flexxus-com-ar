@@ -16,8 +16,9 @@ services:
       - androidboot.redroid_width=1080
       - androidboot.redroid_height=1920
       - androidboot.redroid_dpi=420
-      - androidboot.use_memfd=1       # <-- IMPORTANTE: Soluciona el error de ashmem
-      - ro.secure=0                   # <-- Permite ADB root por defecto para devs
+      - androidboot.use_memfd=1 
+      - ro.secure=0
+      - androidboot.redroid_gpu_mode=guest
     deploy:
       placement:
         constraints: ["${NODE}"]
