@@ -41,9 +41,9 @@ services:
         - "traefik.http.routers.${SERVICE_NAME}.rule=Host(`${DOMAIN_NAME}`)"
         - "traefik.http.services.${SERVICE_NAME}.loadbalancer.server.port=8000"
     logging:
-        driver: loki
-        options:
-          loki-url: ${LOKI_URL}
+      driver: loki
+      options:
+        loki-url: ${LOKI_URL}
 
 networks:
   traefik:
