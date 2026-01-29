@@ -2,7 +2,7 @@ version: '3.6'
 
 services:
   redroid:
-    image: redroid/redroid:12.0.0-latest
+    image: redroid/redroid:14.0.0-latest
     privileged: true
     networks:
       - traefik
@@ -13,43 +13,43 @@ services:
         mode: host
     command:
       - androidboot.redroid_width=1080
-      - androidboot.redroid_height=1920
-      - androidboot.redroid_dpi=420
-      - androidboot.use_memfd=1 
+      - androidboot.redroid_height=2400
+      - androidboot.redroid_dpi=480
+      - androidboot.use_memfd=1
       - ro.secure=0
       - androidboot.redroid_gpu_mode=guest
+      - ro.adb.secure=0
+      - ro.debuggable=1
+      - androidboot.redroid_net_ndns=8.8.8.8,8.8.4.4
     deploy:
+      mode: replicated
+      replicas: 1
       placement:
         constraints: ["${NODE}"]
       restart_policy:
         condition: any
-        delay: 5s
+        delay: 10s
     logging:
       driver: loki
       options:
         loki-url: ${LOKI_URL}
-    healthcheck:
-      test: ["CMD-SHELL", "getprop sys.boot_completed | grep 1 || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 30
-      start_period: 60s
 
   scrcpy-web:
     image: srsdev/ws-scrcpy:latest
     networks:
       - traefik
     environment:
-      - ADB_SERVER_IP=redroid
-      - ADB_SERVER_PORT=5555
+      - ANDROID_DEVICE=redroid:5555
+      - WS_SCRCPY_SERVER_PORT=8000
     deploy:
+      mode: replicated
+      replicas: 0  # Iniciar manualmente después
       placement:
         constraints: ["${NODE}"]
       restart_policy:
         condition: on-failure
-        delay: 15s
+        delay: 30s
         max_attempts: 5
-        window: 120s
       labels:
         - "traefik.enable=true"
         - "traefik.http.routers.${SERVICE_NAME}.entrypoints=web"
