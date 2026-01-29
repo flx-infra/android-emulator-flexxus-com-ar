@@ -1,0 +1,48 @@
+version: '3.6'
+
+services:
+  redroid:
+    image: redroid/redroid:13.0.0-latest
+    privileged: true
+    networks:
+      - traefik
+    ports:
+      - target: 5555
+        published: 5555
+        protocol: tcp
+        mode: host
+    command:
+      - androidboot.redroid_width=1080
+      - androidboot.redroid_height=1920
+      - androidboot.redroid_dpi=420
+    deploy:
+      placement:
+        constraints: ["${NODE}"]
+    logging:
+      driver: loki
+      options:
+        loki-url: ${LOKI_URL}
+
+  scrcpy-web:
+    image: srsdev/ws-scrcpy:latest
+    networks:
+      - traefik
+    environment:
+      - ADB_SERVER_IP=redroid
+    deploy:
+      placement:
+        constraints: ["${NODE}"]
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.${SERVICE_NAME}.entrypoints=web"
+        - "traefik.http.routers.${SERVICE_NAME}.rule=Host(`${DOMAIN_NAME}`)"
+        - "traefik.http.services.${SERVICE_NAME}.loadbalancer.server.port=8000"
+    logging:
+      driver: loki
+      options:
+        loki-url: ${LOKI_URL}
+
+networks:
+  traefik:
+    external: true
+    name: traefik
