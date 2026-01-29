@@ -1,8 +1,8 @@
 version: '3.6'
 
 services:
-  android-emulator:
-    image: budtmo/docker-android:emulator_14.0
+  redroid:
+    image: redroid/redroid:13.0.0-latest
     privileged: true
     networks:
       - traefik
@@ -11,36 +11,40 @@ services:
         published: 5555
         protocol: tcp
         mode: host
-      - target: 6080
-        published: 6080
-        protocol: tcp
-        mode: host
-    environment:
-      - EMULATOR_DEVICE=Pixel_8
-      - WEB_VNC=true
-      - APPIUM=false
-      - EMULATOR_TIMEOUT=600
-      - SKIN_NAME=1080x2400
-      - ANDROID_ARCH=x86_64
-      - ANDROID_VERSION=14.0
-    devices:
-      - /dev/kvm:/dev/kvm
+    # Parámetros oficiales de la documentación
+    command:
+      - androidboot.redroid_width=1080
+      - androidboot.redroid_height=1920
+      - androidboot.redroid_dpi=420
+      - androidboot.use_memfd=1 
+      - ro.secure=0
+      - androidboot.redroid_gpu_mode=guest
     deploy:
       placement:
         constraints: ["${NODE}"]
-      restart_policy:
-        condition: any
-        delay: 10s
     logging:
       driver: loki
       options:
         loki-url: ${LOKI_URL}
-    healthcheck:
-      test: ["CMD-SHELL", "adb devices | grep emulator-5554 || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 10
-      start_period: 180s
+
+  scrcpy-web:
+    image: srsdev/ws-scrcpy:latest
+    networks:
+      - traefik
+    environment:
+      - ADB_SERVER_IP=redroid
+    deploy:
+      placement:
+        constraints: ["${NODE}"]
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.${SERVICE_NAME}.entrypoints=web"
+        - "traefik.http.routers.${SERVICE_NAME}.rule=Host(`${DOMAIN_NAME}`)"
+        - "traefik.http.services.${SERVICE_NAME}.loadbalancer.server.port=8000"
+    logging:
+      driver: loki
+      options:
+        loki-url: ${LOKI_URL}
 
 networks:
   traefik:
