@@ -11,17 +11,16 @@ services:
         published: 5555
         protocol: tcp
         mode: host
+    # Parámetros oficiales de la documentación
     command:
       - androidboot.redroid_width=1080
       - androidboot.redroid_height=1920
       - androidboot.redroid_dpi=420
+      - androidboot.use_memfd=1       # <-- IMPORTANTE: Soluciona el error de ashmem
+      - ro.secure=0                   # <-- Permite ADB root por defecto para devs
     deploy:
       placement:
         constraints: ["${NODE}"]
-    logging:
-      driver: loki
-      options:
-        loki-url: ${LOKI_URL}
 
   scrcpy-web:
     image: srsdev/ws-scrcpy:latest
@@ -37,10 +36,6 @@ services:
         - "traefik.http.routers.${SERVICE_NAME}.entrypoints=web"
         - "traefik.http.routers.${SERVICE_NAME}.rule=Host(`${DOMAIN_NAME}`)"
         - "traefik.http.services.${SERVICE_NAME}.loadbalancer.server.port=8000"
-    logging:
-      driver: loki
-      options:
-        loki-url: ${LOKI_URL}
 
 networks:
   traefik:
